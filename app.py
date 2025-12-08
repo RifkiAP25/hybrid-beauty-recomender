@@ -145,13 +145,13 @@ elif menu == "ℹ️ Tentang Aplikasi":
     st.title("👩‍💻 Tentang Aplikasi & Tim")
 
     st.markdown("""
-    ### 🧑‍🎓 Tim Pengembang
-    | Nama | Peran |
-    |------|-------|
-    | **Rifki Abdul** | Data Science, NLP, Model AI |
-    | **Anggota 2** | Data Analyst |
-    | **Anggota 3** | Backend & Deployment |
-    | **Anggota 4** | UI/UX & Documentation |
+    ### 🧑‍🎓 Tim Pengembang kelompok 8 Celerates
+    | Nama |
+    |------|
+    | **Rifki Alifiani Putra** |
+    | **Rafiqa Ardelia Rahmawati** |
+    | **Alifa Zuriyatul Haq** |
+    | **M. Farhan khoirur ridho** |
 
     ---
     ### 💄 Tujuan Aplikasi
