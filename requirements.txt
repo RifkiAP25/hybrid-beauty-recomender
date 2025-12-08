@@ -1,0 +1,9 @@
+streamlit
+pandas
+numpy
+faiss-cpu
+requests
+pickle-mixin
+google-generativeai
+scikit-learn
+joblib
