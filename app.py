@@ -100,75 +100,45 @@ elif menu == "💄 Rekomendasi Produk":
         st.dataframe(candidates[["item_reviewed", "sentiment_score", "hybrid_score"]].head(5))
 
     st.write("---")
-st.subheader("🤖 Tanya Alasan Rekomendasi")
+    st.subheader("🤖 Tanya Alasan Rekomendasi")
 
-# CEK API KEY
-default_key = os.getenv("GEMINI_API_KEY")
-api_key = default_key if default_key else st.text_input("Masukkan API Key Gemini:", type="password")
+    default_key = os.getenv("GEMINI_API_KEY")
 
-if default_key:
-    st.success("🔐 API Key terdeteksi dari sistem. Chatbot siap digunakan!")
-else:
-    st.markdown(
-        "<a href='https://ai.google.dev/gemini-api/docs/api-key' target='_blank'>📌 Cara mendapatkan API Key Gemini</a>",
-        unsafe_allow_html=True
-    )
-
-# INIT RIWAYAT CHAT
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
-# TAMPILKAN RIWAYAT CHAT
-for role, msg in st.session_state.chat_history:
-    if role == "user":
-        st.markdown(f"**🧑 Kamu:** {msg}")
+    if default_key:
+        st.success("🔐 API Key terdeteksi dari sistem. Chatbot siap digunakan!")
+        api_key = default_key
     else:
-        st.markdown(f"**🤖 AI:** {msg}")
+        api_key = st.text_input("Masukkan API Key Gemini:", type="password")
 
-# INPUT USER
-user_input = st.text_input("✍️ Tanyakan sesuatu tentang rekomendasi ini:")
+        st.markdown(
+            "<a href='https://ai.google.dev/gemini-api/docs/api-key' target='_blank'>📌 Cara mendapatkan API Key Gemini</a>",
+            unsafe_allow_html=True
+        )
 
-# KETIKA USER KIRIM PESAN
-if st.button("💬 Kirim"):
-    if "candidates" not in st.session_state:
-        st.warning("⚠ Tampilkan rekomendasi dulu!")
-    elif not api_key:
-        st.error("⚠ Masukkan API Key dulu ya!")
-    else:
-        try:
-            # CONFIG GEMINI
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-2.5-flash")
+    if st.button("📌 Jelaskan Rekomendasi Teratas"):
+        if "candidates" not in st.session_state:
+            st.warning("⚠ Tampilkan rekomendasi dulu!")
+        elif not api_key:
+            st.error("⚠ Masukkan API Key dulu ya!")
+        else:
+            try:
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel("gemini-2.5-flash")
+                top = st.session_state["candidates"].iloc[0]
 
-            # PRODUK TERATAS YANG DIREKOMENDASIKAN
-            top = st.session_state["candidates"].iloc[0]
-
-            # SISTEM PROMPT AWAL (HANYA SEKALI DI AWAL)
-            if len(st.session_state.chat_history) == 0:
-                system_prompt = f"""
-                Kamu adalah asisten kecantikan profesional.
-                Jawab dengan ramah dan alami.
-                Produk utama yang direkomendasikan: **{top['item_reviewed']}**
-                Jelaskan manfaat, tekstur, dan alasan kecocokan tanpa menyebut angka/teknis model ML.
+                prompt = f"""
+                Jelaskan secara natural mengapa **{top['item_reviewed']}** cocok
+                sebagai alternatif dari **{selected}**. Fokus pada manfaat, pengalaman pengguna, dan kesesuaian fungsi.
+                Tidak perlu menyebut angka, skor, atau istilah teknis.
                 """
-                st.session_state.chat_history.append(("system", system_prompt))
 
-            # SIMPAN INPUT USER
-            st.session_state.chat_history.append(("user", user_input))
+                response = model.generate_content(prompt)
+                st.success("✨ Penjelasan Rekomendasi:")
+                st.write(response.text)
 
-            # GENERATE RESPONSE DENGAN RIWAYAT CHAT
-            response = model.generate_content([
-                msg for _, msg in st.session_state.chat_history
-            ])
-
-            # SIMPAN BALASAN
-            st.session_state.chat_history.append(("assistant", response.text))
-
-            st.experimental_rerun()
-
-        except Exception as e:
-            st.error("Terjadi error:")
-            st.code(str(e))
+            except Exception as e:
+                st.error("Terjadi error:")
+                st.code(str(e))
 
 # ABOUT PAGE 
 elif menu == "ℹ️ Tentang Aplikasi":
