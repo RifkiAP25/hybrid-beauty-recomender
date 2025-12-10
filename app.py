@@ -9,7 +9,7 @@ from io import BytesIO
 import google.generativeai as genai
 import os
 
-# ======================= LOAD DATA FROM GITHUB ===========================
+# LOAD DATA FROM GITHUB 
 URL_PRODUCTS = "https://raw.githubusercontent.com/RifkiAP25/hybrid-beauty-recomender/refs/heads/main/model/products.pkl"
 URL_SVM      = "https://raw.githubusercontent.com/RifkiAP25/hybrid-beauty-recomender/refs/heads/main/model/svm_model.pkl"
 URL_FAISS    = "https://raw.githubusercontent.com/RifkiAP25/hybrid-beauty-recomender/refs/heads/main/model/faiss_index.bin"
@@ -29,7 +29,7 @@ def load_models():
 product_df, svm_model, faiss_index = load_models()
 faiss_embed = np.vstack(product_df["embedding"].values).astype("float32")
 
-# =================== CSS CUSTOM ================================
+# CSS CUSTOM 
 hide_password_icon = """
 <style>
 input[type="password"]::-ms-reveal,
@@ -48,11 +48,11 @@ div[data-testid="stDataFrame"] table {
 """
 st.markdown(hide_password_icon, unsafe_allow_html=True)
 
-# =================== SIDEBAR NAVIGASI ==========================
+# SIDEBAR NAVIGASI 
 st.sidebar.title("📌 Menu Navigasi")
 menu = st.sidebar.radio("Pilih Halaman:", ["🏠 Dashboard", "💄 Rekomendasi Produk", "ℹ️ Tentang Aplikasi"])
 
-# =================== DASHBOARD ================================
+# DASHBOARD 
 if menu == "🏠 Dashboard":
     st.title("💋 AI Beauty Recommendation Dashboard")
 
@@ -75,7 +75,7 @@ if menu == "🏠 Dashboard":
     👉 Mulai coba rekomendasi di menu **💄 Rekomendasi Produk**
     """)
 
-# =================== HALAMAN REKOMENDASI ======================
+# HALAMAN REKOMENDASI 
 elif menu == "💄 Rekomendasi Produk":
     st.title("✨ Beauty AI Recommender")
     st.caption("Hybrid Semantic + Sentiment + Prediction + Explainable Chatbot")
@@ -100,47 +100,77 @@ elif menu == "💄 Rekomendasi Produk":
         st.dataframe(candidates[["item_reviewed", "sentiment_score", "hybrid_score"]].head(5))
 
     st.write("---")
-    st.subheader("🤖 Tanya Alasan Rekomendasi")
+st.subheader("🤖 Tanya Alasan Rekomendasi")
 
-    default_key = os.getenv("GEMINI_API_KEY")
+# CEK API KEY
+default_key = os.getenv("GEMINI_API_KEY")
+api_key = default_key if default_key else st.text_input("Masukkan API Key Gemini:", type="password")
 
-    if default_key:
-        st.success("🔐 API Key terdeteksi dari sistem. Chatbot siap digunakan!")
-        api_key = default_key
+if default_key:
+    st.success("🔐 API Key terdeteksi dari sistem. Chatbot siap digunakan!")
+else:
+    st.markdown(
+        "<a href='https://ai.google.dev/gemini-api/docs/api-key' target='_blank'>📌 Cara mendapatkan API Key Gemini</a>",
+        unsafe_allow_html=True
+    )
+
+# INIT RIWAYAT CHAT
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+# TAMPILKAN RIWAYAT CHAT
+for role, msg in st.session_state.chat_history:
+    if role == "user":
+        st.markdown(f"**🧑 Kamu:** {msg}")
     else:
-        api_key = st.text_input("Masukkan API Key Gemini:", type="password")
+        st.markdown(f"**🤖 AI:** {msg}")
 
-        st.markdown(
-            "<a href='https://ai.google.dev/gemini-api/docs/api-key' target='_blank'>📌 Cara mendapatkan API Key Gemini</a>",
-            unsafe_allow_html=True
-        )
+# INPUT USER
+user_input = st.text_input("✍️ Tanyakan sesuatu tentang rekomendasi ini:")
 
-    if st.button("📌 Jelaskan Rekomendasi Teratas"):
-        if "candidates" not in st.session_state:
-            st.warning("⚠ Tampilkan rekomendasi dulu!")
-        elif not api_key:
-            st.error("⚠ Masukkan API Key dulu ya!")
-        else:
-            try:
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("gemini-2.5-flash")
-                top = st.session_state["candidates"].iloc[0]
+# KETIKA USER KIRIM PESAN
+if st.button("💬 Kirim"):
+    if "candidates" not in st.session_state:
+        st.warning("⚠ Tampilkan rekomendasi dulu!")
+    elif not api_key:
+        st.error("⚠ Masukkan API Key dulu ya!")
+    else:
+        try:
+            # CONFIG GEMINI
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-2.5-flash")
 
-                prompt = f"""
-                Jelaskan secara natural mengapa **{top['item_reviewed']}** cocok
-                sebagai alternatif dari **{selected}**. Fokus pada manfaat, pengalaman pengguna, dan kesesuaian fungsi.
-                Tidak perlu menyebut angka, skor, atau istilah teknis.
+            # PRODUK TERATAS YANG DIREKOMENDASIKAN
+            top = st.session_state["candidates"].iloc[0]
+
+            # SISTEM PROMPT AWAL (HANYA SEKALI DI AWAL)
+            if len(st.session_state.chat_history) == 0:
+                system_prompt = f"""
+                Kamu adalah asisten kecantikan profesional.
+                Jawab dengan ramah dan alami.
+                Produk utama yang direkomendasikan: **{top['item_reviewed']}**
+                Jelaskan manfaat, tekstur, dan alasan kecocokan tanpa menyebut angka/teknis model ML.
                 """
+                st.session_state.chat_history.append(("system", system_prompt))
 
-                response = model.generate_content(prompt)
-                st.success("✨ Penjelasan Rekomendasi:")
-                st.write(response.text)
+            # SIMPAN INPUT USER
+            st.session_state.chat_history.append(("user", user_input))
 
-            except Exception as e:
-                st.error("Terjadi error:")
-                st.code(str(e))
+            # GENERATE RESPONSE DENGAN RIWAYAT CHAT
+            response = model.generate_content([
+                msg for _, msg in st.session_state.chat_history
+            ])
 
-# =================== ABOUT PAGE ================================
+            # SIMPAN BALASAN
+            st.session_state.chat_history.append(("assistant", response.text))
+
+            st.experimental_rerun()
+
+        except Exception as e:
+            st.error("Terjadi error:")
+            st.code(str(e))
+
+# ABOUT PAGE 
 elif menu == "ℹ️ Tentang Aplikasi":
     st.title("👩‍💻 Tentang Aplikasi & Tim")
 
