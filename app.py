@@ -42,8 +42,14 @@ st.markdown("""
 
 /* background gradient */
 .stApp {
-    background: linear-gradient(135deg, #ffe0ef 0%, #fff8fc 100%);
+    background-image:
+        linear-gradient(rgba(255, 192, 203, 0.1), rgba(255, 192, 203, 0.99)),
+        url("https://images.unsplash.com/photo-1600428877878-1a0fd85beda8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
 }
+
 
 /* fix max width */
 .block-container {
@@ -52,7 +58,7 @@ st.markdown("""
 }
 
 /* =========================================
-   1) GLOBAL TEXT (semua konten utama) 
+1) GLOBAL TEXT 
 ========================================= */
 html, body, p, li, span, div, td, th {
     color: var(--text-dark-pink) !important;
@@ -64,7 +70,7 @@ html, body, p, li, span, div, td, th {
 }
 
 /* =========================================
-   2) SIDEBAR TEXT (semua teks sidebar, pasti kena)
+2) SIDEBAR TEXT 
 ========================================= */
 aside, .stSidebar, .stSidebar * {
     color: var(--primary) !important;
@@ -72,7 +78,7 @@ aside, .stSidebar, .stSidebar * {
 }
 
 /* =========================================
-   3) HEADER TITLES (tetap pink cerah)
+3) HEADER TITLES 
 ========================================= */
 h1, h2, h3 {
     color: var(--primary) !important;
@@ -82,7 +88,7 @@ h1, h2, h3 {
 /* card styling */
 .section-card {
     padding: 20px;
-    background: white;
+    background: rgba(255, 255, 255, 0.5);
     border-radius: 15px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     margin-bottom: 25px;
@@ -249,7 +255,7 @@ elif menu == "Rekomendasi Produk":
 elif menu == "Tentang Aplikasi":
 
     header_card("Tentang Aplikasi & Tim",
-                "Dikembangkan oleh Kelompok 8 — Program Celerates")
+                "Dikembangkan oleh Kelompok 8 - Program Celerates")
 
     st.markdown("""
     ### Tim Pengembang
@@ -277,7 +283,7 @@ elif menu == "Tentang Aplikasi":
 st.markdown("""
 <br><hr>
 <div style="text-align:center; padding:15px; margin-top:20px;
-            background:linear-gradient(90deg,#ffffff,#ffffff);
+            background: rgba(255, 255, 255, 0.5);
             border-radius:12px; color:#ffffff;">
     <b>Beauty AI Recommender</b><br>
     Celerates 2025 · Kelompok 8
